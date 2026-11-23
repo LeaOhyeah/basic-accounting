@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Akuntansi Dasar: Debit &amp; Kredit</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Animasi halus untuk highlight kartu & badge perubahan */
+    @keyframes pulseRingIndigo {
+      0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.55); transform: scale(1); }
+      40% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); transform: scale(1.015); }
+      100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); transform: scale(1); }
+    }
+    @keyframes pulseRingEmerald {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); transform: scale(1); }
+      40% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); transform: scale(1.015); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); transform: scale(1); }
+    }
+    @keyframes floatBadge {
+      0% { opacity: 0; transform: translateY(8px) scale(0.92); }
+      15% { opacity: 1; transform: translateY(0) scale(1); }
+      80% { opacity: 1; transform: translateY(-4px) scale(1); }
+      100% { opacity: 0; transform: translateY(-12px) scale(0.96); }
+    }
+    .animate-pulse-indigo {
+      animation: pulseRingIndigo 0.85s ease-out;
+    }
+    .animate-pulse-emerald {
+      animation: pulseRingEmerald 0.85s ease-out;
+    }
+    .animate-float-badge {
+      animation: floatBadge 2.4s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Toast Notification Container (pengganti alert) -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-[calc(100%-2rem)] pointer-events-none"></div>
+
+  <!-- Navbar / Top Bar -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-emerald-500 flex items-center justify-center text-white shadow-sm shrink-0">
+          <!-- Scale / Balance Icon -->
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m-7-4l3-7 3 7H5zm11 0l3-7 3 7h-6zM4 7h16" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">Simulator Akuntansi Dasar</h1>
+          <p class="text-xs text-slate-500 font-medium">Catatan Belajar Interaktif: Debit &amp; Kredit</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btn-cheatsheet" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 active:scale-95 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          Cheat Sheet Rumus
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-7 space-y-6">
+
+    <!-- 1. BANNER & FLAG KONSEP UTAMA -->
+    <section class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 shadow-md">
+      <div class="absolute -right-10 -top-10 w-44 h-44 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -left-10 -bottom-10 w-44 h-44 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-amber-300">
+            <span>🚩</span>
+            <span>ATURAN EMAS AKUNTANSI</span>
+          </div>
+          <h2 class="text-lg sm:text-2xl font-extrabold tracking-tight leading-snug">
+            &ldquo;Apa yang dipegang di Kiri, jelas sumbernya dari Kanan&rdquo;
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+            <strong class="text-indigo-300">DEBIT = Kiri</strong> &nbsp;|&nbsp; <strong class="text-emerald-300">KREDIT = Kanan</strong>.
+            Ini <strong>bukan uang dobel</strong>, melainkan <em>satu koin yang dilihat dari dua sudut pandang</em>: wujud barangnya apa, dan asal-usul duitnya dari mana.
+          </p>
+        </div>
+        <div class="shrink-0 flex sm:flex-col gap-2 text-xs">
+          <div class="px-3 py-2 rounded-xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-100 font-semibold text-center">
+            ⬅️ KIRI: Wujudnya Apa?
+          </div>
+          <div class="px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-100 font-semibold text-center">
+            ➡️ KANAN: Sumbernya Dari Mana?
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. INDIKATOR TIMBANGAN (LIVE BALANCE BAR) -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⚖️</span>
+          <h3 class="text-sm sm:text-base font-bold text-slate-800">Timbangan Persamaan Akuntansi</h3>
+        </div>
+        <!-- Badge Seimbang -->
+        <div id="balance-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>SEIMBANG (=)</span>
+        </div>
+      </div>
+
+      <!-- Visual Comparison Bar -->
+      <div class="grid grid-cols-1 md:grid-cols-11 gap-3 items-center">
+        <!-- Total Kiri -->
+        <div class="md:col-span-5 bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-600">Total Kiri (Debit)</p>
+            <p class="text-xs text-slate-500">Aset + Beban</p>
+          </div>
+          <p id="total-kiri" class="text-lg sm:text-xl font-extrabold text-indigo-900 tabular-nums">Rp10.000.000</p>
+        </div>
+
+        <!-- Tanda Sama Dengan -->
+        <div class="md:col-span-1 flex justify-center">
+          <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center font-black text-slate-700 text-lg shadow-inner">
+            =
+          </div>
+        </div>
+
+        <!-- Total Kanan -->
+        <div class="md:col-span-5 bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Total Kanan (Kredit)</p>
+            <p class="text-xs text-slate-500">Liabilitas + Ekuitas + Pendapatan</p>
+          </div>
+          <p id="total-kanan" class="text-lg sm:text-xl font-extrabold text-emerald-900 tabular-nums">Rp10.000.000</p>
+        </div>
+      </div>
+
+      <!-- Pengingat Harta Nyata -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs sm:text-sm">
+        <div class="flex items-center gap-2 text-slate-700">
+          <span class="text-base">💡</span>
+          <span><strong>Total Harta Nyata yang Kamu Pegang (Aset):</strong></span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span id="real-asset-summary" class="font-extrabold text-indigo-700 bg-indigo-100/80 px-2.5 py-0.5 rounded-lg tabular-nums">Rp10.000.000</span>
+          <span id="double-warning-note" class="text-xs text-slate-500">(Bukan Rp20.000.000 — Kiri &amp; Kanan tidak dijumlahkan!)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. LAYOUT DUA KOLOM UTAMA (TIM KIRI VS TIM KANAN) -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+      <!-- KOLOM KIRI: TIM KIRI / DEBIT -->
+      <div class="bg-white rounded-2xl border-2 border-indigo-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="bg-indigo-600 text-white px-5 py-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-white text-indigo-700 text-xs font-extrabold uppercase tracking-wide shadow-sm">
+                🚩 Wujudnya Apa?
+              </span>
+              <span class="text-xs font-semibold text-indigo-100">TIM KIRI (DEBIT)</span>
+            </div>
+            <p class="text-xs text-indigo-100 mt-1.5">
+              Saldo Normal: <strong>Bertambah (+) di DEBIT</strong>, Berkurang (-) di KREDIT
+            </p>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-5 space-y-4 flex-1 bg-indigo-50/30">
+          <!-- Kartu Aset (Harta) -->
+          <div id="card-aset" class="relative bg-white rounded-2xl border border-indigo-200 p-4 shadow-sm transition-all">
+            <div id="badge-aset" class="absolute -top-3 right-3 pointer-events-none"></div>
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div>
+                <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>🏦</span> Aset (Harta)
+                </h4>
+                <p class="text-xs text-slate-500">Semua barang &amp; uang bernilai yang kamu punya saat ini</p>
+              </div>
+              <p id="val-aset" class="text-lg sm:text-xl font-extrabold text-indigo-700 tabular-nums shrink-0">Rp10.000.000</p>
+            </div>
+
+            <!-- Rincian Aset -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-3 border-t border-slate-100">
+              <div id="sub-kas" class="relative bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 transition-all">
+                <div id="badge-kas" class="absolute -top-2.5 right-2 pointer-events-none"></div>
+                <p class="text-[11px] font-semibold text-slate-500">💵 Uang Tunai / Kas</p>
+                <p id="val-kas" class="text-sm font-bold text-slate-800 mt-0.5 tabular-nums">Rp10.000.000</p>
+              </div>
+              <div id="sub-barang" class="relative bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 transition-all">
+                <div id="badge-barang" class="absolute -top-2.5 right-2 pointer-events-none"></div>
+                <p class="text-[11px] font-semibold text-slate-500">💻 Barang / Peralatan</p>
+                <p id="val-barang" class="text-sm font-bold text-slate-800 mt-0.5 tabular-nums">Rp0</p>
+              </div>
+              <div id="sub-piutang" class="relative bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 transition-all">
+                <div id="badge-piutang" class="absolute -top-2.5 right-2 pointer-events-none"></div>
+                <p class="text-[11px] font-semibold text-slate-500">🧾 Piutang (di Klien)</p>
+                <p id="val-piutang" class="text-sm font-bold text-slate-800 mt-0.5 tabular-nums">Rp0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kartu Beban -->
+          <div id="card-beban" class="relative bg-white rounded-2xl border border-indigo-200 p-4 shadow-sm transition-all">
+            <div id="badge-beban" class="absolute -top-3 right-3 pointer-events-none"></div>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>☕</span> Beban (Biaya Habis Pakai)
+                </h4>
+                <p class="text-xs text-slate-500">Uang yang sudah terpakai &amp; nilainya habis (kopi, listrik, WiFi)</p>
+              </div>
+              <p id="val-beban" class="text-lg sm:text-xl font-extrabold text-indigo-700 tabular-nums shrink-0">Rp0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KOLOM KANAN: TIM KANAN / KREDIT -->
+      <div class="bg-white rounded-2xl border-2 border-emerald-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="bg-emerald-600 text-white px-5 py-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-white text-emerald-700 text-xs font-extrabold uppercase tracking-wide shadow-sm">
+                🚩 Sumbernya Dari Mana?
+              </span>
+              <span class="text-xs font-semibold text-emerald-100">TIM KANAN (KREDIT)</span>
+            </div>
+            <p class="text-xs text-emerald-100 mt-1.5">
+              Saldo Normal: <strong>Bertambah (+) di KREDIT</strong>, Berkurang (-) di DEBIT
+            </p>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-5 space-y-3.5 flex-1 bg-emerald-50/30">
+          <!-- Kartu Liabilitas (Utang) -->
+          <div id="card-liabilitas" class="relative bg-white rounded-2xl border border-emerald-200 p-4 shadow-sm transition-all">
+            <div id="badge-liabilitas" class="absolute -top-3 right-3 pointer-events-none"></div>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>🤝</span> Liabilitas (Utang)
+                </h4>
+                <p class="text-xs text-slate-500">Dana pinjaman / cicilan yang wajib dibayar ke pihak lain (bukan Beban!)</p>
+              </div>
+              <p id="val-liabilitas" class="text-lg sm:text-xl font-extrabold text-emerald-700 tabular-nums shrink-0">Rp0</p>
+            </div>
+          </div>
+
+          <!-- Kartu Ekuitas (Modal) -->
+          <div id="card-ekuitas" class="relative bg-white rounded-2xl border border-emerald-200 p-4 shadow-sm transition-all">
+            <div id="badge-ekuitas" class="absolute -top-3 right-3 pointer-events-none"></div>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>👤</span> Ekuitas (Modal Sendiri)
+                </h4>
+                <p class="text-xs text-slate-500">Harta yang murni bersumber dari kantong pemilik sendiri</p>
+              </div>
+              <p id="val-ekuitas" class="text-lg sm:text-xl font-extrabold text-emerald-700 tabular-nums shrink-0">Rp10.000.000</p>
+            </div>
+          </div>
+
+          <!-- Kartu Pendapatan -->
+          <div id="card-pendapatan" class="relative bg-white rounded-2xl border border-emerald-200 p-4 shadow-sm transition-all">
+            <div id="badge-pendapatan" class="absolute -top-3 right-3 pointer-events-none"></div>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>📈</span> Pendapatan (Hasil Kerja/Jualan)
+                </h4>
+                <p class="text-xs text-slate-500">Sumber dana baru dari gaji, jualan produk, atau jasa</p>
+              </div>
+              <p id="val-pendapatan" class="text-lg sm:text-xl font-extrabold text-emerald-700 tabular-nums shrink-0">Rp0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 4. KOTAK PENJELASAN BAHASA BAYI (SOROTAN TRANSAKSI TERAKHIR) -->
+    <section id="explanation-box" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">👶</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Penjelasan Bahasa Bayi (Transaksi Terakhir)</h3>
+            <p id="exp-title" class="text-xs font-semibold text-indigo-600">Keadaan Awal: Setoran Modal Sendiri Rp10.000.000</p>
+          </div>
+        </div>
+        <span id="exp-step-badge" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">Kondisi Awal</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Penjelasan Sisi Kiri -->
+        <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 space-y-1">
+          <p class="text-xs font-extrabold text-indigo-700 uppercase tracking-wide">⬅️ Wujudnya Apa yang Berubah? (Kiri)</p>
+          <p id="exp-left" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            Di tanganmu sekarang ada <strong>Uang Tunai (Kas) Rp10.000.000</strong>. Karena Kas adalah Aset (Tim Kiri) dan bertambah, dicatat di <strong>DEBIT</strong>.
+          </p>
+        </div>
+
+        <!-- Penjelasan Sisi Kanan -->
+        <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3.5 space-y-1">
+          <p class="text-xs font-extrabold text-emerald-700 uppercase tracking-wide">➡️ Sumbernya Dari Mana? (Kanan)</p>
+          <p id="exp-right" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            Uang Rp10.000.000 itu asalnya dari <strong>Modal Sendiri (Ekuitas)</strong>. Karena Ekuitas itu Tim Kanan dan bertambah, dicatat di <strong>KREDIT</strong>.
+          </p>
+        </div>
+
+        <!-- Format Jurnal Akuntansi -->
+        <div class="bg-slate-900 text-slate-100 rounded-xl p-3.5 flex flex-col justify-center">
+          <p class="text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-2">📝 Format Jurnal Akuntansi</p>
+          <div id="exp-journal" class="font-mono text-xs space-y-1.5">
+            <div class="flex justify-between gap-2">
+              <span class="text-indigo-300 font-semibold">[D] Kas (Aset)</span>
+              <span class="tabular-nums">Rp10.000.000</span>
+            </div>
+            <div class="flex justify-between gap-2 pl-5">
+              <span class="text-emerald-300 font-semibold">[K] Ekuitas (Modal)</span>
+              <span class="tabular-nums">Rp10.000.000</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. PANEL SIMULASI TRANSAKSI HARIAN LENGKAP -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span>🎮</span> Simulasi Transaksi Harian
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-500">Klik salah satu transaksi di bawah ini dan perhatikan bagaimana Kiri &amp; Kanan selalu seimbang.</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="btn-undo" type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4" />
+            </svg>
+            Undo Terakhir
+          </button>
+          <button id="btn-reset" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 active:scale-95 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reset ke Awal
+          </button>
+        </div>
+      </div>
+
+      <!-- Kategori 1: Pengeluaran Harian -->
+      <div class="space-y-2.5">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          1. Pengeluaran Harian
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <button data-tx="kopi" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-indigo-700">☕ Beli Kopi Tunai</span>
+              <span class="text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg shrink-0">Rp50rb</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Beban +50rb (D) | Kas -50rb (K)</p>
+          </button>
+
+          <button data-tx="listrik" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-indigo-700">⚡ Bayar Listrik &amp; WiFi</span>
+              <span class="text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg shrink-0">Rp300rb</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Beban +300rb (D) | Kas -300rb (K)</p>
+          </button>
+
+          <button data-tx="prive" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-indigo-700">🛍️ Ambil Uang Pribadi (Prive)</span>
+              <span class="text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg shrink-0">Rp1jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Ekuitas -1jt (D) | Kas -1jt (K)</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Kategori 2: Pemasukan & Modal -->
+      <div class="space-y-2.5">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          2. Pemasukan &amp; Modal
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button data-tx="gaji" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-700">💰 Gaji / Proyek Tunai</span>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">Rp5jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Kas +5jt (D) | Pendapatan +5jt (K)</p>
+          </button>
+
+          <button data-tx="piutang_baru" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-700">🧾 Jual Jasa (Belum Dibayar)</span>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">Rp1,5jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Piutang +1,5jt (D) | Pendapatan +1,5jt (K)</p>
+          </button>
+
+          <button data-tx="piutang_lunas" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-700">✅ Klien Lunasi Piutang</span>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">Rp1,5jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Kas +1,5jt (D) | Piutang -1,5jt (K)</p>
+          </button>
+
+          <button data-tx="setor_modal" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-700">➕ Setor Modal Sendiri</span>
+              <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">Rp3jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Kas +3jt (D) | Ekuitas +3jt (K)</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Kategori 3: Utang & Beli Aset -->
+      <div class="space-y-2.5">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-600 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          3. Utang &amp; Beli Aset (Belajar Utang ≠ Beban)
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button data-tx="pinjam_bank" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-amber-700">🏛️ Pinjam Uang Bank</span>
+              <span class="text-xs font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg shrink-0">Rp5jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Kas +5jt (D) | Liabilitas +5jt (K)</p>
+          </button>
+
+          <button data-tx="beli_laptop" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-amber-700">💻 Beli Laptop (Ngutang)</span>
+              <span class="text-xs font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg shrink-0">Rp10jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Barang +10jt (D) | Liabilitas +10jt (K)</p>
+          </button>
+
+          <button data-tx="beli_motor" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-amber-700">🏍️ Beli Motor (DP + Cicil)</span>
+              <span class="text-xs font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg shrink-0">Rp20jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Barang +20jt (D) | Kas -5jt, Utang +15jt (K)</p>
+          </button>
+
+          <button data-tx="bayar_utang" type="button" class="tx-btn text-left p-3.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 active:scale-[0.98] transition shadow-xs cursor-pointer group">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 group-hover:text-amber-700">💸 Bayar Cicilan / Utang</span>
+              <span class="text-xs font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg shrink-0">Rp2jt</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Liabilitas -2jt (D) | Kas -2jt (K)</p>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. RIWAYAT JURNAL UMUM -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-2">
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <span>📚</span> Riwayat Jurnal Umum
+          </h3>
+          <p class="text-xs text-slate-500">Catatan lengkap semua transaksi dari awal (tersimpan otomatis di browsermu)</p>
+        </div>
+        <span id="journal-count" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">1 Catatan</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+              <th class="py-3 px-4 w-12 text-center">#</th>
+              <th class="py-3 px-4">Transaksi &amp; Akun</th>
+              <th class="py-3 px-4 text-right text-indigo-700">Debit (Kiri)</th>
+              <th class="py-3 px-4 text-right text-emerald-700">Kredit (Kanan)</th>
+            </tr>
+          </thead>
+          <tbody id="journal-tbody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+            <!-- Diisi otomatis oleh JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-6xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-slate-400">
+    Dibuat khusus sebagai catatan belajar akuntansi pemula • Data tersimpan lokal di browser (localStorage).
+  </footer>
+
+  <!-- MODAL CHEAT SHEET RUMUS -->
+  <div id="modal-cheatsheet" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+      <div class="sticky top-0 bg-white/95 backdrop-blur-md px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <span>📖</span> Cheat Sheet Rumus Akuntansi
+        </h3>
+        <button id="btn-close-modal" type="button" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+        <!-- Pindah Ruas Matematika -->
+        <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-4 space-y-2">
+          <h4 class="font-extrabold text-indigo-900">1. Asal-Usul 2 Tim (Cuma Pindah Ruas Matematika!)</h4>
+          <p class="text-xs sm:text-sm">Rumus dasar akuntansi itu simpel:</p>
+          <div class="bg-white rounded-lg p-3 font-mono text-xs sm:text-sm text-center font-bold border border-indigo-100 space-y-1.5">
+            <div>Aset = Liabilitas + Ekuitas</div>
+            <div class="text-slate-400 text-xs">↓ (Pendapatan nambah Ekuitas, Beban ngurangin Ekuitas)</div>
+            <div>Aset = Liabilitas + Ekuitas + Pendapatan <span class="text-rose-600">- Beban</span></div>
+            <div class="text-slate-400 text-xs">↓ (Pindah Beban ke kiri biar gak ada tanda minus)</div>
+            <div class="pt-1">
+              <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">Aset + Beban</span>
+              =
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Liabilitas + Ekuitas + Pendapatan</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600">
+            Itulah kenapa <strong>Aset &amp; Beban</strong> ada di <strong>Tim Kiri (Debit)</strong>, sedangkan <strong>Liabilitas, Ekuitas, &amp; Pendapatan</strong> ada di <strong>Tim Kanan (Kredit)</strong>.
+          </p>
+        </div>
+
+        <!-- Perbedaan Utang vs Beban -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-2">
+          <h4 class="font-extrabold text-amber-900">2. Kenapa Utang BUKAN Beban?</h4>
+          <ul class="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
+            <li><strong>Beban (Expense):</strong> Uang sudah dipakai dan <strong>habis/hilang</strong>. Contoh: beli kopi lalu diminum, bayar listrik bulan ini.</li>
+            <li><strong>Utang (Liabilitas):</strong> Cuma <strong>sumber dana pinjaman</strong>. Saat kamu pinjam bank Rp5jt, kamu tidak rugi Rp5jt—uangnya masih utuh di tanganmu (Aset), kamu cuma punya kewajiban mengembalikannya nanti.</li>
+          </ul>
+        </div>
+
+        <!-- Analogi Satu Koin -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-1.5">
+          <h4 class="font-extrabold text-emerald-900">3. Kenapa Kiri &amp; Kanan Tidak Dijumlah Jadi Dobel?</h4>
+          <p class="text-xs sm:text-sm">
+            Bayangkan <strong>1 keping uang koin</strong>: sisi depan gambar Garuda (<strong>Kiri / Wujudnya Apa</strong>), sisi belakang angka nominal (<strong>Kanan / Sumbernya Dari Mana</strong>). Meskipun ada 2 sisi catatan, koin aslinya tetap cuma <strong>satu</strong>!
+          </p>
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button id="btn-ok-modal" type="button" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-slate-800 cursor-pointer">
+          Paham, Lanjut Simulasi!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'simulator_akuntansi_dasar_v1';
+
+      // Format angka ke Rupiah Indonesia
+      function formatRp(num) {
+        return 'Rp' + Math.round(num).toLocaleString('id-ID');
+      }
+
+      // State awal aplikasi
+      function getInitialState() {
+        return {
+          accounts: {
+            kas: 10000000,
+            barang: 0,
+            piutang: 0,
+            beban: 0,
+            liabilitas: 0,
+            ekuitas: 10000000,
+            pendapatan: 0,
+          },
+          journal: [
+            {
+              step: 0,
+              title: 'Keadaan Awal: Setoran Modal Sendiri',
+              leftExp: 'Di tanganmu sekarang ada <strong>Uang Tunai (Kas) Rp10.000.000</strong>. Karena Kas adalah Aset (Tim Kiri) dan bertambah, dicatat di <strong>DEBIT</strong>.',
+              rightExp: 'Uang Rp10.000.000 itu asalnya dari <strong>Modal Sendiri (Ekuitas)</strong>. Karena Ekuitas itu Tim Kanan dan bertambah, dicatat di <strong>KREDIT</strong>.',
+              entries: [
+                { side: 'D', name: 'Kas (Aset)', amount: 10000000 },
+                { side: 'K', name: 'Ekuitas (Modal Awal)', amount: 10000000 },
+              ],
+            },
+          ],
+          historyStack: [], // Untuk fitur Undo
+        };
+      }
+
+      // Load state dari localStorage dengan try/catch
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return getInitialState();
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.accounts && Array.isArray(parsed.journal)) {
+            return parsed;
+          }
+        } catch (e) {
+          console.warn('Gagal memuat localStorage, menggunakan state awal.', e);
+        }
+        return getInitialState();
+      }
+
+      // Simpan state ke localStorage
+      function saveState(stateObj) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stateObj));
+        } catch (e) {
+          console.warn('Gagal menyimpan ke localStorage.', e);
+        }
+      }
+
+      let state = loadState();
+
+      // Toast Notification Helper (menggantikan alert)
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const styles = {
+          error: 'bg-rose-600 text-white border-rose-700',
+          success: 'bg-emerald-600 text-white border-emerald-700',
+          info: 'bg-slate-800 text-white border-slate-900',
+        };
+        const icons = {
+          error: '⚠️',
+          success: '✅',
+          info: 'ℹ️',
+        };
+        toast.className = `pointer-events-auto flex items-start gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs sm:text-sm font-medium transition-all duration-300 opacity-0 translate-y-2 ${styles[type] || styles.info}`;
+        toast.innerHTML = `<span class="shrink-0">${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+          toast.classList.remove('opacity-0', 'translate-y-2');
+        });
+
+        setTimeout(() => {
+          toast.classList.add('opacity-0', '-translate-y-2');
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      // Animasi highlight & floating badge pada kartu yang berubah
+      function triggerCardEffect(elementId, badgeId, sideClass, text, isDebit) {
+        const cardEl = document.getElementById(elementId);
+        const badgeContainer = document.getElementById(badgeId);
+
+        if (cardEl) {
+          const animClass = sideClass === 'left' ? 'animate-pulse-indigo' : 'animate-pulse-emerald';
+          cardEl.classList.remove('animate-pulse-indigo', 'animate-pulse-emerald');
+          void cardEl.offsetWidth; // trigger reflow
+          cardEl.classList.add(animClass);
+        }
+
+        if (badgeContainer) {
+          const badgeColor = isDebit
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'bg-emerald-600 text-white shadow-md';
+          badgeContainer.innerHTML = `
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${badgeColor} animate-float-badge whitespace-nowrap">
+              ${text}
+            </span>
+          `;
+        }
+      }
+
+      // Render seluruh tampilan UI dari state terkini
+      function render() {
+        const acc = state.accounts;
+        const totalAset = acc.kas + acc.barang + acc.piutang;
+        const totalKiri = totalAset + acc.beban;
+        const totalKanan = acc.liabilitas + acc.ekuitas + acc.pendapatan;
+
+        // Update nilai kartu
+        document.getElementById('val-aset').textContent = formatRp(totalAset);
+        document.getElementById('val-kas').textContent = formatRp(acc.kas);
+        document.getElementById('val-barang').textContent = formatRp(acc.barang);
+        document.getElementById('val-piutang').textContent = formatRp(acc.piutang);
+        document.getElementById('val-beban').textContent = formatRp(acc.beban);
+
+        document.getElementById('val-liabilitas').textContent = formatRp(acc.liabilitas);
+        document.getElementById('val-ekuitas').textContent = formatRp(acc.ekuitas);
+        document.getElementById('val-pendapatan').textContent = formatRp(acc.pendapatan);
+
+        // Update Timbangan
+        document.getElementById('total-kiri').textContent = formatRp(totalKiri);
+        document.getElementById('total-kanan').textContent = formatRp(totalKanan);
+        document.getElementById('real-asset-summary').textContent = formatRp(totalAset);
+        document.getElementById('double-warning-note').textContent =
+          `(Bukan ${formatRp(totalAset * 2)} — Kiri & Kanan tidak dijumlahkan!)`;
+
+        const balanceBadge = document.getElementById('balance-badge');
+        if (totalKiri === totalKanan) {
+          balanceBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 self-start sm:self-auto';
+          balanceBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>SEIMBANG (=)</span>`;
+        } else {
+          balanceBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200 self-start sm:self-auto';
+          balanceBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>TIDAK SEIMBANG!</span>`;
+        }
+
+        // Update Kotak Penjelasan Bahasa Bayi (ambil entri jurnal terakhir)
+        const latest = state.journal[state.journal.length - 1];
+        if (latest) {
+          document.getElementById('exp-title').textContent = latest.title;
+          document.getElementById('exp-step-badge').textContent =
+            latest.step === 0 ? 'Kondisi Awal' : `Transaksi #${latest.step}`;
+          document.getElementById('exp-left').innerHTML = latest.leftExp;
+          document.getElementById('exp-right').innerHTML = latest.rightExp;
+
+          const expJournalEl = document.getElementById('exp-journal');
+          expJournalEl.innerHTML = latest.entries
+            .map((e) => {
+              const isD = e.side === 'D';
+              return `
+                <div class="flex justify-between gap-2 ${isD ? '' : 'pl-5'}">
+                  <span class="${isD ? 'text-indigo-300' : 'text-emerald-300'} font-semibold">[${e.side}] ${e.name}</span>
+                  <span class="tabular-nums">${formatRp(e.amount)}</span>
+                </div>
+              `;
+            })
+            .join('');
+        }
+
+        // Update Tombol Undo
+        const btnUndo = document.getElementById('btn-undo');
+        btnUndo.disabled = state.historyStack.length === 0;
+
+        // Update Riwayat Jurnal Umum (tampilkan terbaru di atas)
+        const tbody = document.getElementById('journal-tbody');
+        document.getElementById('journal-count').textContent = `${state.journal.length} Catatan`;
+
+        const rowsHtml = [...state.journal]
+          .reverse()
+          .map((item) => {
+            const linesHtml = item.entries
+              .map((e) => {
+                const isD = e.side === 'D';
+                return `
+                  <tr class="hover:bg-slate-50/70">
+                    <td class="py-2 px-4 text-center text-slate-400 font-mono text-xs">${isD && item.entries[0] === e ? (item.step === 0 ? 'Awal' : '#' + item.step) : ''}</td>
+                    <td class="py-2 px-4">
+                      ${isD && item.entries[0] === e ? `<div class="text-[11px] font-bold text-slate-500 mb-0.5">${item.title}</div>` : ''}
+                      <div class="${isD ? 'font-semibold text-slate-800' : 'pl-6 text-slate-600'}">
+                        ${isD ? '' : '↳ '}${e.name}
+                      </div>
+                    </td>
+                    <td class="py-2 px-4 text-right font-mono tabular-nums ${isD ? 'font-bold text-indigo-700' : 'text-slate-300'}">
+                      ${isD ? formatRp(e.amount) : '-'}
+                    </td>
+                    <td class="py-2 px-4 text-right font-mono tabular-nums ${!isD ? 'font-bold text-emerald-700' : 'text-slate-300'}">
+                      ${!isD ? formatRp(e.amount) : '-'}
+                    </td>
+                  </tr>
+                `;
+              })
+              .join('');
+            return linesHtml;
+          })
+          .join('');
+
+        tbody.innerHTML = rowsHtml;
+      }
+
+      // Simpan snapshot sebelum mengubah state (untuk Undo)
+      function pushHistory() {
+        state.historyStack.push(JSON.stringify({
+          accounts: state.accounts,
+          journal: state.journal,
+        }));
+        // Batasi riwayat undo maksimal 50 langkah agar memori ringan
+        if (state.historyStack.length > 50) {
+          state.historyStack.shift();
+        }
+      }
+
+      // Eksekusi 11 Skenario Transaksi Harian
+      function executeTransaction(txKey) {
+        const acc = state.accounts;
+        const nextStep = state.journal.length;
+        let journalEntry = null;
+        let effects = []; // [{ cardId, badgeId, sideClass, text, isDebit }]
+
+        switch (txKey) {
+          case 'kopi': {
+            const amt = 50000;
+            if (acc.kas < amt) {
+              return showToast('Uang tunai (Kas) tidak cukup untuk beli kopi Rp50.000! Cari pemasukan dulu ya.', 'error');
+            }
+            pushHistory();
+            acc.beban += amt;
+            acc.kas -= amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Beli Kopi Tunai (Rp50.000)',
+              leftExp: '<strong>Beban Kopi</strong> (Tim Kiri) bertambah Rp50rb → <strong>DEBIT</strong>. Tapi di saat yang sama, wujud <strong>Uang Tunai/Kas</strong> (Tim Kiri) berkurang Rp50rb → pindah ke <strong>KREDIT</strong>.',
+              rightExp: 'Tidak ada perubahan di Tim Kanan (Utang/Modal/Pendapatan tetap). Transaksi ini murni tukar posisi di dalam Tim Kiri saja!',
+              entries: [
+                { side: 'D', name: 'Beban Kopi', amount: amt },
+                { side: 'K', name: 'Kas (Aset)', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'card-beban', badgeId: 'badge-beban', sideClass: 'left', text: '+Rp50rb (DEBIT)', isDebit: true },
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '-Rp50rb (KREDIT)', isDebit: false },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '-Rp50rb (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'listrik': {
+            const amt = 300000;
+            if (acc.kas < amt) {
+              return showToast('Kas tidak cukup untuk bayar Listrik & WiFi Rp300.000!', 'error');
+            }
+            pushHistory();
+            acc.beban += amt;
+            acc.kas -= amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Bayar Listrik & WiFi (Rp300.000)',
+              leftExp: '<strong>Beban Listrik &amp; WiFi</strong> bertambah Rp300rb → <strong>DEBIT</strong>. <strong>Kas</strong> berkurang Rp300rb karena dipakai bayar → <strong>KREDIT</strong>.',
+              rightExp: 'Tim Kanan tidak berubah. Total Kiri tetap sama karena Beban naik Rp300rb tapi Aset turun Rp300rb.',
+              entries: [
+                { side: 'D', name: 'Beban Listrik & WiFi', amount: amt },
+                { side: 'K', name: 'Kas (Aset)', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'card-beban', badgeId: 'badge-beban', sideClass: 'left', text: '+Rp300rb (DEBIT)', isDebit: true },
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '-Rp300rb (KREDIT)', isDebit: false },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '-Rp300rb (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'prive': {
+            const amt = 1000000;
+            if (acc.kas < amt) {
+              return showToast('Kas kurang dari Rp1.000.000, tidak bisa tarik uang pribadi (Prive).', 'error');
+            }
+            if (acc.ekuitas < amt) {
+              return showToast('Ekuitas (Modal Sendiri) kurang dari Rp1.000.000!', 'error');
+            }
+            pushHistory();
+            acc.ekuitas -= amt;
+            acc.kas -= amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Ambil Uang Pribadi / Prive (Rp1.000.000)',
+              leftExp: 'Wujud <strong>Kas</strong> berkurang Rp1.000.000 karena diambil pemilik → pindah ke <strong>KREDIT</strong>.',
+              rightExp: 'Karena pemilik menarik uangnya sendiri, <strong>Ekuitas (Modal)</strong> berkurang Rp1.000.000 → pindah ke <strong>DEBIT</strong>. Kiri &amp; Kanan sama-sama turun Rp1jt!',
+              entries: [
+                { side: 'D', name: 'Ekuitas / Prive (Modal Berkurang)', amount: amt },
+                { side: 'K', name: 'Kas (Aset)', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'card-ekuitas', badgeId: 'badge-ekuitas', sideClass: 'right', text: '-Rp1jt (DEBIT)', isDebit: true },
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '-Rp1jt (KREDIT)', isDebit: false },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '-Rp1jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'gaji': {
+            const amt = 5000000;
+            pushHistory();
+            acc.kas += amt;
+            acc.pendapatan += amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Dapat Gaji / Proyek Tunai (Rp5.000.000)',
+              leftExp: 'Wujud <strong>Uang Tunai (Kas)</strong> di tanganmu bertambah Rp5.000.000 → <strong>DEBIT</strong>.',
+              rightExp: 'Uang Rp5.000.000 itu sumbernya dari <strong>Pendapatan Gaji/Proyek</strong> (Tim Kanan bertambah) → <strong>KREDIT</strong>.',
+              entries: [
+                { side: 'D', name: 'Kas (Aset)', amount: amt },
+                { side: 'K', name: 'Pendapatan Gaji / Proyek', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '+Rp5jt (DEBIT)', isDebit: true },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '+Rp5jt (DEBIT)', isDebit: true },
+              { cardId: 'card-pendapatan', badgeId: 'badge-pendapatan', sideClass: 'right', text: '+Rp5jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'piutang_baru': {
+            const amt = 1500000;
+            pushHistory();
+            acc.piutang += amt;
+            acc.pendapatan += amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Jual Jasa tapi Klien Belum Bayar / Piutang (Rp1.500.000)',
+              leftExp: 'Walaupun belum terima tunai, kamu punya <strong>hak tagih (Piutang)</strong> Rp1,5jt. Piutang adalah Aset (Tim Kiri) bertambah → <strong>DEBIT</strong>.',
+              rightExp: 'Sumber hak tagih itu adalah <strong>Pendapatan Jasa</strong> karena kerjamu sudah selesai → <strong>KREDIT</strong>.',
+              entries: [
+                { side: 'D', name: 'Piutang Usaha (Aset)', amount: amt },
+                { side: 'K', name: 'Pendapatan Jasa', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-piutang', badgeId: 'badge-piutang', sideClass: 'left', text: '+Rp1,5jt (DEBIT)', isDebit: true },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '+Rp1,5jt (DEBIT)', isDebit: true },
+              { cardId: 'card-pendapatan', badgeId: 'badge-pendapatan', sideClass: 'right', text: '+Rp1,5jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'piutang_lunas': {
+            const amt = 1500000;
+            if (acc.piutang < amt) {
+              return showToast('Kamu belum punya Piutang sebesar Rp1.500.000 untuk dilunasi klien. Klik "Jual Jasa (Belum Dibayar)" dulu ya!', 'error');
+            }
+            pushHistory();
+            acc.kas += amt;
+            acc.piutang -= amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Klien Akhirnya Melunasi Piutang (Rp1.500.000)',
+              leftExp: 'Asetmu cuma <strong>ganti wujud</strong>: <strong>Kas</strong> bertambah Rp1,5jt (<strong>DEBIT</strong>), dan <strong>Piutang</strong> berkurang/lunas Rp1,5jt (<strong>KREDIT</strong>).',
+              rightExp: 'Tim Kanan tidak berubah karena Pendapatannya sudah dicatat sebelumnya saat jasa selesai!',
+              entries: [
+                { side: 'D', name: 'Kas (Aset)', amount: amt },
+                { side: 'K', name: 'Piutang Usaha (Aset)', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '+Rp1,5jt (DEBIT)', isDebit: true },
+              { cardId: 'sub-piutang', badgeId: 'badge-piutang', sideClass: 'left', text: '-Rp1,5jt (KREDIT)', isDebit: false },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: 'Ganti Wujud (±0)', isDebit: true },
+            ];
+            break;
+          }
+
+          case 'setor_modal': {
+            const amt = 3000000;
+            pushHistory();
+            acc.kas += amt;
+            acc.ekuitas += amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Setor Modal Tambahan Sendiri (Rp3.000.000)',
+              leftExp: 'Wujud <strong>Uang Tunai (Kas)</strong> bertambah Rp3.000.000 → <strong>DEBIT</strong>.',
+              rightExp: 'Sumber uangnya dari kantong sendiri, jadi <strong>Ekuitas (Modal)</strong> bertambah Rp3.000.000 → <strong>KREDIT</strong>.',
+              entries: [
+                { side: 'D', name: 'Kas (Aset)', amount: amt },
+                { side: 'K', name: 'Ekuitas (Modal)', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '+Rp3jt (DEBIT)', isDebit: true },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '+Rp3jt (DEBIT)', isDebit: true },
+              { cardId: 'card-ekuitas', badgeId: 'badge-ekuitas', sideClass: 'right', text: '+Rp3jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'pinjam_bank': {
+            const amt = 5000000;
+            pushHistory();
+            acc.kas += amt;
+            acc.liabilitas += amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Pinjam Uang Bank (Rp5.000.000)',
+              leftExp: 'Wujud <strong>Kas</strong> di rekeningmu bertambah Rp5.000.000 → <strong>DEBIT</strong>. (Perhatikan: Beban tetap Rp0 karena uangnya masih utuh!)',
+              rightExp: 'Uang Rp5.000.000 itu asalnya dari <strong>Utang Bank (Liabilitas)</strong> yang bertambah → <strong>KREDIT</strong>.',
+              entries: [
+                { side: 'D', name: 'Kas (Aset)', amount: amt },
+                { side: 'K', name: 'Liabilitas / Utang Bank', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '+Rp5jt (DEBIT)', isDebit: true },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '+Rp5jt (DEBIT)', isDebit: true },
+              { cardId: 'card-liabilitas', badgeId: 'badge-liabilitas', sideClass: 'right', text: '+Rp5jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'beli_laptop': {
+            const amt = 10000000;
+            pushHistory();
+            acc.barang += amt;
+            acc.liabilitas += amt;
+            journalEntry = {
+              step: nextStep,
+              title: 'Beli Laptop Cicil / Ngutang Penuh (Rp10.000.000)',
+              leftExp: 'Kamu sekarang pegang wujud <strong>Laptop (Barang/Aset)</strong> senilai Rp10.000.000 → <strong>DEBIT</strong>.',
+              rightExp: 'Sumbernya dari mana? Dari <strong>Utang (Liabilitas)</strong> Rp10.000.000 karena belum dibayar → <strong>KREDIT</strong>.',
+              entries: [
+                { side: 'D', name: 'Barang / Laptop (Aset)', amount: amt },
+                { side: 'K', name: 'Liabilitas / Utang Usaha', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-barang', badgeId: 'badge-barang', sideClass: 'left', text: '+Rp10jt (DEBIT)', isDebit: true },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '+Rp10jt (DEBIT)', isDebit: true },
+              { cardId: 'card-liabilitas', badgeId: 'badge-liabilitas', sideClass: 'right', text: '+Rp10jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'beli_motor': {
+            const total = 20000000;
+            const dp = 5000000;
+            const utang = 15000000;
+            if (acc.kas < dp) {
+              return showToast('Kas kurang dari Rp5.000.000 untuk bayar DP motor!', 'error');
+            }
+            pushHistory();
+            acc.barang += total;
+            acc.kas -= dp;
+            acc.liabilitas += utang;
+            journalEntry = {
+              step: nextStep,
+              title: 'Beli Motor Campuran: DP Rp5jt + Cicil Rp15jt (Total Rp20jt)',
+              leftExp: 'Wujud <strong>Motor (Barang/Aset)</strong> masuk Rp20jt (<strong>DEBIT</strong>), tapi <strong>Kas</strong> keluar buat DP Rp5jt (<strong>KREDIT</strong>). Bersihnya Aset naik Rp15jt.',
+              rightExp: 'Kekurangan Rp15jt sumbernya dari <strong>Cicilan/Utang (Liabilitas)</strong> bertambah Rp15jt → <strong>KREDIT</strong>. (Total D Rp20jt = Total K Rp5jt + Rp15jt!)',
+              entries: [
+                { side: 'D', name: 'Barang / Motor (Aset)', amount: total },
+                { side: 'K', name: 'Kas (DP Motor)', amount: dp },
+                { side: 'K', name: 'Liabilitas / Cicilan Motor', amount: utang },
+              ],
+            };
+            effects = [
+              { cardId: 'sub-barang', badgeId: 'badge-barang', sideClass: 'left', text: '+Rp20jt (DEBIT)', isDebit: true },
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: '-Rp5jt (KREDIT)', isDebit: false },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: '+Rp15jt (Net)', isDebit: true },
+              { cardId: 'card-liabilitas', badgeId: 'badge-liabilitas', sideClass: 'right', text: '+Rp15jt (KREDIT)', isDebit: false },
+            ];
+            break;
+          }
+
+          case 'bayar_utang': {
+            if (acc.liabilitas <= 0) {
+              return showToast('Kamu sedang tidak punya Utang (Rp0) untuk dibayar!', 'error');
+            }
+            const amt = Math.min(2000000, acc.liabilitas);
+            if (acc.kas < amt) {
+              return showToast(`Kas tidak cukup untuk bayar cicilan ${formatRp(amt)}!`, 'error');
+            }
+            pushHistory();
+            acc.liabilitas -= amt;
+            acc.kas -= amt;
+            journalEntry = {
+              step: nextStep,
+              title: `Bayar Cicilan / Utang Tunai (${formatRp(amt)})`,
+              leftExp: 'Wujud <strong>Uang Tunai (Kas)</strong> berkurang ' + formatRp(amt) + ' karena dipakai melunasi utang → pindah ke <strong>KREDIT</strong>.',
+              rightExp: '<strong>Utang (Liabilitas)</strong> berkurang ' + formatRp(amt) + ' → pindah ke <strong>DEBIT</strong>. Kiri &amp; Kanan sama-sama turun!',
+              entries: [
+                { side: 'D', name: 'Liabilitas / Utang Berkurang', amount: amt },
+                { side: 'K', name: 'Kas (Aset)', amount: amt },
+              ],
+            };
+            effects = [
+              { cardId: 'card-liabilitas', badgeId: 'badge-liabilitas', sideClass: 'right', text: `-${formatRp(amt)} (DEBIT)`, isDebit: true },
+              { cardId: 'sub-kas', badgeId: 'badge-kas', sideClass: 'left', text: `-${formatRp(amt)} (KREDIT)`, isDebit: false },
+              { cardId: 'card-aset', badgeId: 'badge-aset', sideClass: 'left', text: `-${formatRp(amt)} (KREDIT)`, isDebit: false },
+            ];
+            break;
+          }
+
+          default:
+            return;
+        }
+
+        if (journalEntry) {
+          state.journal.push(journalEntry);
+          saveState(state);
+          render();
+          effects.forEach((ef) => {
+            triggerCardEffect(ef.cardId, ef.badgeId, ef.sideClass, ef.text, ef.isDebit);
+          });
+        }
+      }
+
+      // Event Listeners untuk tombol transaksi
+      document.querySelectorAll('.tx-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          executeTransaction(btn.getAttribute('data-tx'));
+        });
+      });
+
+      // Undo Transaksi Terakhir
+      document.getElementById('btn-undo').addEventListener('click', () => {
+        if (state.historyStack.length === 0) return;
+        try {
+          const prev = JSON.parse(state.historyStack.pop());
+          state.accounts = prev.accounts;
+          state.journal = prev.journal;
+          saveState(state);
+          render();
+          showToast('Transaksi terakhir dibatalkan (Undo).', 'info');
+        } catch (e) {
+          showToast('Gagal melakukan Undo.', 'error');
+        }
+      });
+
+      // Reset ke Awal
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        state = getInitialState();
+        saveState(state);
+        render();
+        showToast('Simulasi berhasil di-reset ke kondisi awal (Modal Rp10.000.000).', 'success');
+      });
+
+      // Modal Cheat Sheet Logic
+      const modal = document.getElementById('modal-cheatsheet');
+      function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+      function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      document.getElementById('btn-cheatsheet').addEventListener('click', openModal);
+      document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+      document.getElementById('btn-ok-modal').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+      });
+
+      // Render perdana saat halaman dibuka
+      render();
+    })();
+  </script>
+</body>
+</html>
